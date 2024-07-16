@@ -7,11 +7,17 @@ from enum import Enum
 from collections import namedtuple
 import numpy as np
 from debug import DebugItem
+from pynput import keyboard
+import termios
+import sys
+import tty
 
 N_CARDS_HAND = 3
 
 WINNING_REWARD = 100
 LOSING_REWARD = -100
+
+
 
 def calc_points(cards: List[Deck.Card], point_structure):
     temp = 0
@@ -28,9 +34,12 @@ class Hand:
         self.order_hand()
 
     def __str__(self):
-        temp = "[ "
-        for card in self.cards:
-            temp = temp + str(card) + " , "
+        temp = "[ "        
+        for idx, card in enumerate(self.cards):
+            if idx == len(self.cards)-1:
+                temp = temp + str(card) + " "
+            else:
+                temp = temp + str(card) + " , "
         temp = temp + "]"
         return temp
     
@@ -57,12 +66,13 @@ class Hand:
 
 class Player:
 
-    def __init__(self, deck: Deck.Deck, policy, point_structure, name, n_players, load_flag = 1):
+    def __init__(self, deck: Deck.Deck, policy, point_structure, name, n_players, load_flag = 1, print_flag = 0):
         self.deck = deck
         self.policy = policy
         self.name = name
         self.point_structure = point_structure
         self.load_flag = load_flag
+        self.print_flag = print_flag
         if (self.policy == Agent.Q) or (self.policy == Agent.Q_NOT_LEARN):
             self.agent = Agent.Agent(self.deck, N_CARDS_HAND, n_players, point_structure=point_structure)
             if self.load_flag: self.agent.model.load()
@@ -72,6 +82,7 @@ class Player:
         self.total_wins = 0
 
         self.order = None
+        self.pressed_key = ''
 
         self.reset()
 
@@ -132,19 +143,70 @@ class Player:
         elif self.policy == Agent.RANDOM:            
             return random.choice(range(self.hand.length))
         elif self.policy == Agent.INPUT:
-            print(state[0])
+            table_card = state[0]
+            if table_card == []:
+                print("[  ]")
+            else:
+                print("[",table_card[0],"]")
             print(self.hand)
             choice = -1
             while (choice not in range(self.hand.length)):
-                choice = input("Card index:")
+                print("<-: Left | ^: Centre | ->: Right")
+                #fd = sys.stdin.fileno()
+                #old_settings = disable_echo(fd)
+                listener = keyboard.Listener(on_press=on_press)
+                listener.start()
+                listener.join()
+                self.pressed_key = pressed_key
+                if self.pressed_key == "LEFT":
+                    choice = 0
+                elif self.pressed_key == "UP":
+                    choice = 1
+                elif self.pressed_key == "RIGHT":
+                    choice = 2
+                else:
+                    raise "Other value for pressed key"
+                #restore_echo(fd, old_settings)
             return choice
-        raise "Policy unknown"
+        raise "Policy unknown"   
+    
         
     def play_turn(self, state):
         if not(self.hand.cards == state[1]):
             raise "Hand different from player's hand in state"
-        action = self.choose_action(state) 
+        action = self.choose_action(state)
+        if self.print_flag: print(self.name, ": ", self.hand.cards[action]) 
         return action                       # action is the index of the card in hand to play
+
+def disable_echo(fd):
+    if hasattr(termios, 'tcgetattr'):
+        old_settings = termios.tcgetattr(fd)
+        new_settings = termios.tcgetattr(fd)
+        new_settings[3] = new_settings[3] & ~termios.ECHO
+        termios.tcsetattr(fd, termios.TCSADRAIN, new_settings)
+        return old_settings
+    return None
+
+def restore_echo(fd, old_settings):
+    if old_settings and hasattr(termios, 'tcsetattr'):
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+
+def on_press(key):
+        global pressed_key        
+        pressed_key = ""        
+        try:
+            if key == keyboard.Key.left:
+                pressed_key = "LEFT"
+                return False           
+            elif key == keyboard.Key.up:
+                pressed_key = "UP"
+                return False                    
+            elif key == keyboard.Key.right:
+                pressed_key = "RIGHT"
+                return False                         
+        finally:            
+            pass
+            
 
 class Game:
 
@@ -167,7 +229,7 @@ class Game:
         self.point_structure = self.adjust_point_structure(point_structure)
 
         self.n_players = len(policies)       
-        self.players = [Player(self.deck, policies[i], self.point_structure, f"P{i}", self.n_players) for i in range(self.n_players)]
+        self.players = [Player(self.deck, policies[i], self.point_structure, f"P{i}", self.n_players, print_flag=self.print_flag) for i in range(self.n_players)]
         self.wins = [ [] for _ in self.players]
         self.draws = []
         self.turn_order = [i for i in range(self.n_players)]
@@ -207,7 +269,7 @@ class Game:
         idx = 0
         while (not flag):
             idx+=1
-            if self.print_flag: print(f"Turn: {idx}\n")
+            if self.print_flag: print(f"Turn: {idx}")
             flag = self.play_step()
         if self.print_flag: print("Game over.")                
 

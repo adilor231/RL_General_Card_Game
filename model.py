@@ -60,7 +60,8 @@ class QTrainer:
         pred = self.model(state)
         target = pred.clone()
         
-        Q_new = (1-ALPHA)*pred[0][action] + ALPHA*reward.item()
+        if done: 
+            Q_new = (1-ALPHA)*pred[0][action] + ALPHA*reward.item()
         if not done:
             Q_new = (1-ALPHA)*pred[0][action] + ALPHA*(reward.item() + self.gamma * torch.max(self.model(next_state[0])))
         target[0][action] = Q_new

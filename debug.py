@@ -19,7 +19,8 @@ def plot_moving(series, lag):
     plt.ylabel('Wins')
     plt.title('Moving Average Plot')
     plt.legend()
-    plt.show()
+    plt.show(block=True)
+    plt.savefig("winning_plot.png")
 
 def plot(*args):
     display.clear_output(wait=True)
@@ -39,7 +40,7 @@ def plot(*args):
     for score in args:
         plt.text(len(score)-1, score[-1], str(score[-1]))
     plt.show(block=False)
-    plt.pause(.01)   
+    plt.pause(.005)   
 
 class DebugItem:
     def __init__(self, string, time):
