@@ -1,7 +1,8 @@
 import model
 import cardgame as CardGame
 import agent as Agent
-import Deck
+import deck
+import deck_examples
 import debug
 import time
 import numpy as np
@@ -63,11 +64,11 @@ def test(training, n_rounds, n_superrounds):
 
     # Deck construction
 
-    DECK = Deck.ITALIAN_DECK
+    DECK = deck_examples.ITALIAN_DECK
     TRUMP_SUIT = "Coins"
-    LIST_PAIRS = Deck.create_briscola_order(TRUMP_SUIT)
-    ORDER =  Deck.Order(DECK, LIST_PAIRS) #Deck.ORDER_TAROT
-    POINTS = Deck.create_briscola_points() #Deck.POINTS_TAROT
+    LIST_PAIRS = deck_examples.create_briscola_order(TRUMP_SUIT)
+    ORDER =  deck.Order(DECK, LIST_PAIRS) #deck_examples.ORDER_TAROT
+    POINTS = deck_examples.create_briscola_points() #deck_examples.POINTS_TAROT
 
     ###
 

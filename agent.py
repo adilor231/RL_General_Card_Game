@@ -5,7 +5,7 @@ import numpy as np
 from collections import deque
 from model import Linear_QNet, QTrainer
 from itertools import chain
-import Deck
+import deck
 import copy
 
 BATCH_SIZE = 10
@@ -27,13 +27,13 @@ EPSILON = 0
 
 
 
-def translate_into_pair(point_structure, card, capture_order: Deck.Order):
+def translate_into_pair(point_structure, card, capture_order: deck.Order):
     points = point_structure[card]
     pair = capture_order.get_card_pair(card.value, card.suit)
     depth = capture_order.get_depth(pair)
     return [points, depth]
 
-def translate_into_pair_drawn(point_structure, card, capture_order: Deck.Order, drawn_cards):
+def translate_into_pair_drawn(point_structure, card, capture_order: deck.Order, drawn_cards):
     # same as translate into pair above, with also the number of cards still in the deck (or in others' hands)
     # of the same suit that can capture the given card
     points, depth = translate_into_pair(point_structure, card, capture_order)
@@ -66,7 +66,7 @@ def state_translator(point_structure, state, deck_order, capture_order = None):
             # - position in the capture queue (e.g. Ace of Briscola = 1, Three of Briscola = 2, Ace of Hand suit = 11)
             # - points awarded for the capture of that card
             if capture_order == None: raise "No capture order in ORDER_INPUT_FLAG mode"
-            if not(isinstance(capture_order,Deck.Order)): raise "Capture order of wrong type"         
+            if not(isinstance(capture_order,deck.Order)): raise "Capture order of wrong type"         
             temp = []
             state_new = [state[0], state[1]]
             drawn_cards = state[2] + state[3] # sum as list merge
@@ -93,7 +93,7 @@ def state_translator(point_structure, state, deck_order, capture_order = None):
     return flattened_input
 
 class Agent:
-    def __init__(self, deck: Deck.Deck, n_cards_hand = 3, n_players = 2, point_structure = None, long_memory_flag = LONG_MEMORY_FLAG, softmax_flag = 0, temperature = 100):
+    def __init__(self, deck: deck.Deck, n_cards_hand = 3, n_players = 2, point_structure = None, long_memory_flag = LONG_MEMORY_FLAG, softmax_flag = 0, temperature = 100):
         self.deck = deck
         self.point_structure = point_structure
         DECK_LENGTH = len(self.deck.initial_deck_order)

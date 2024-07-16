@@ -1,4 +1,4 @@
-import Deck
+import deck
 import agent as Agent
 from typing import List
 import random
@@ -19,7 +19,7 @@ LOSING_REWARD = -100
 
 
 
-def calc_points(cards: List[Deck.Card], point_structure):
+def calc_points(cards: List[deck.Card], point_structure):
     temp = 0
     for card in cards:
         temp += point_structure[card]
@@ -66,7 +66,7 @@ class Hand:
 
 class Player:
 
-    def __init__(self, deck: Deck.Deck, policy, point_structure, name, n_players, load_flag = 1, print_flag = 0):
+    def __init__(self, deck: deck.Deck, policy, point_structure, name, n_players, load_flag = 1, print_flag = 0):
         self.deck = deck
         self.policy = policy
         self.name = name
@@ -96,7 +96,7 @@ class Player:
         self.total_wins = 0
         if self.load_flag and ((self.policy==Agent.Q) or (self.policy == Agent.Q_NOT_LEARN)): self.agent.model.load()
 
-    def put_order(self, order:Deck.Order):
+    def put_order(self, order:deck.Order):
         self.order = order
 
     def reset(self):        
@@ -210,7 +210,7 @@ def on_press(key):
 
 class Game:
 
-    def __init__(self, deck: Deck.Deck, order: Deck.Order, policies = [Agent.Q, Agent.Q], point_structure = {}, print_flag = 0, trump_suit = "Major Arcana"):
+    def __init__(self, deck: deck.Deck, order: deck.Order, policies = [Agent.Q, Agent.Q], point_structure = {}, print_flag = 0, trump_suit = "Major Arcana"):
         self.deck = deck
         self.print_flag = print_flag
 
@@ -325,7 +325,7 @@ class Game:
         return self.modified_orders[hand_suit]   # if the hand suit is not trump, we return a modified version of the order decided in the Order class
                                                  # usually, it will be an order for which the other suits are below the lowest hand suited card
         
-    def resolve_cards(self, cards: List[Deck.Card]):
+    def resolve_cards(self, cards: List[deck.Card]):
         hand_suit = cards[0].suit              # the first suit played has priority if no trump has been played
         order = self.get_order(hand_suit)      # get the order depending on the hand suit
         self.refresh_players_orders(order)
