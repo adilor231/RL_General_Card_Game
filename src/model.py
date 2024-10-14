@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import os
 import io
 
-ALPHA = 0.90
+from constants import ALPHA
 
 class Linear_QNet(nn.Module):
     def __init__(self, input_size, hidden_size, hidden2_size, output_size):
